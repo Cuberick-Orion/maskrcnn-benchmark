@@ -9,13 +9,16 @@ import numpy as np
 from maskrcnn_benchmark.config import cfg
 from predictor import COCODemo
 
+from datetime import datetime
+
 # config_file = "../configs/e2e_faster_rcnn_R_101_FPN_1x.yaml"
 config_file = "../configs/caffe2/e2e_mask_rcnn_R_50_FPN_1x_caffe2.yaml"
+# config_file = "../configs/caffe2/e2e_mask_rcnn_X_101_32x8d_FPN_1x_caffe2.yaml"
 
 # update the config options with the config file
 cfg.merge_from_file(config_file)
 # manual override some options
-cfg.merge_from_list(["MODEL.DEVICE", "cpu"])
+# cfg.merge_from_list(["MODEL.DEVICE", "cpu"])
 # cfg.merge_from_list(["MODEL.MASK_ON", False])
 
 coco_demo = COCODemo(
@@ -40,14 +43,12 @@ def imshow(img):
     plt.axis("off")
 
 
-# from http://cocodataset.org/#explore?id=345434
 image = load("http://farm3.staticflickr.com/2469/3915380994_2e611b1779_z.jpg")
-plt.imsave("test.jpg", image)
-
+plt.imsave("test_" + str(datetime.now().timestamp())+".jpg", image)
 
 # compute predictions
 predictions = coco_demo.run_on_opencv_image(image)
-plt.imsave("test_pred.jpg", predictions)
+plt.imsave("test_" + str(datetime.now().timestamp())+".jpg", predictions)
 
 # load image and then run prediction
 # pil_image = Image.open("demo_e2e_mask_rcnn_R_50_FPN_1x.png").convert("RGB")

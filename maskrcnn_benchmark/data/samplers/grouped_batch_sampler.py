@@ -33,7 +33,7 @@ class GroupedBatchSampler(BatchSampler):
         self.batch_size = batch_size
         self.drop_uneven = drop_uneven
 
-        self.groups = torch.unique(self.group_ids).sort(0)[0]
+        self.groups = torch.unique(self.group_ids).sort(0)[0] ## Returns the unique elements of the input tensor.
 
         self._can_reuse_batches = False
 

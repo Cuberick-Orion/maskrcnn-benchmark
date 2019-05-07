@@ -13,6 +13,7 @@ from . import samplers
 from .collate_batch import BatchCollator
 from .transforms import build_transforms
 
+import pdb
 
 def build_dataset(dataset_list, transforms, dataset_catalog, is_train=True):
     """
@@ -88,6 +89,7 @@ def make_batch_data_sampler(
     if aspect_grouping:
         if not isinstance(aspect_grouping, (list, tuple)):
             aspect_grouping = [aspect_grouping]
+        pdb.set_trace()
         aspect_ratios = _compute_aspect_ratios(dataset)
         group_ids = _quantize(aspect_ratios, aspect_grouping)
         batch_sampler = samplers.GroupedBatchSampler(

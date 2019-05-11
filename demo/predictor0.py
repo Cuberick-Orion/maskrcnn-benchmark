@@ -10,7 +10,7 @@ from maskrcnn_benchmark.modeling.roi_heads.mask_head.inference import Masker
 from maskrcnn_benchmark import layers as L
 from maskrcnn_benchmark.utils import cv2_util
 
-
+import pdb
 class COCODemo(object):
     # COCO categories for pretty print
     CATEGORIES = [
@@ -171,15 +171,26 @@ class COCODemo(object):
         """
         predictions, features = self.compute_prediction(image)
         top_predictions = self.select_top_predictions(predictions)
+        '''
+        (Pdb) predictions
+            BoxList(num_boxes=11, image_width=499, image_height=500, mode=xyxy)
+        (Pdb) top_predictions
+            BoxList(num_boxes=4, image_width=499, image_height=500, mode=xyxy)
+        '''
+        # pdb.set_trace()
 
         result = image.copy()
         if self.show_mask_heatmaps:
             return self.create_mask_montage(result, top_predictions)
+
         result = self.overlay_boxes(result, top_predictions)
+
         if self.cfg.MODEL.MASK_ON:
             result = self.overlay_mask(result, top_predictions)
+
         if self.cfg.MODEL.KEYPOINT_ON:
             result = self.overlay_keypoints(result, top_predictions)
+
         result = self.overlay_class_names(result, top_predictions)
 
         return result, top_predictions, predictions, features
@@ -268,7 +279,7 @@ class COCODemo(object):
             box = box.to(torch.int64)
             top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
             image = cv2.rectangle(
-                image, tuple(top_left), tuple(bottom_right), tuple(color), 1
+                image, tuple(top_left), tuple(bottom_right), tuple(color), 3 ## linewidth
             )
 
         return image

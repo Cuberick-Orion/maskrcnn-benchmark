@@ -55,8 +55,8 @@ class FPN2MLPFeatureExtractor(nn.Module):
     def __init__(self, cfg, in_channels):
         super(FPN2MLPFeatureExtractor, self).__init__()
 
-        resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
-        scales = cfg.MODEL.ROI_BOX_HEAD.POOLER_SCALES
+        resolution = cfg.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION ## 7
+        scales = cfg.MODEL.ROI_BOX_HEAD.POOLER_SCALES ## (0.25, 0.125, 0.0625, 0.03125)
         sampling_ratio = cfg.MODEL.ROI_BOX_HEAD.POOLER_SAMPLING_RATIO
         pooler = Pooler(
             output_size=(resolution, resolution),
@@ -64,7 +64,7 @@ class FPN2MLPFeatureExtractor(nn.Module):
             sampling_ratio=sampling_ratio,
         )
         input_size = in_channels * resolution ** 2
-        representation_size = cfg.MODEL.ROI_BOX_HEAD.MLP_HEAD_DIM
+        representation_size = cfg.MODEL.ROI_BOX_HEAD.MLP_HEAD_DIM ## 1024
         use_gn = cfg.MODEL.ROI_BOX_HEAD.USE_GN
         self.pooler = pooler
         self.fc6 = make_fc(input_size, representation_size, use_gn)
@@ -146,6 +146,6 @@ class FPNXconv1fcFeatureExtractor(nn.Module):
 
 def make_roi_box_feature_extractor(cfg, in_channels):
     func = registry.ROI_BOX_FEATURE_EXTRACTORS[
-        cfg.MODEL.ROI_BOX_HEAD.FEATURE_EXTRACTOR
+        cfg.MODEL.ROI_BOX_HEAD.FEATURE_EXTRACTOR ## "FPN2MLPFeatureExtractor"
     ]
     return func(cfg, in_channels)

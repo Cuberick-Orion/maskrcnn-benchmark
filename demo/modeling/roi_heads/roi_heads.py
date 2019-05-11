@@ -15,17 +15,17 @@ class CombinedROIHeads(torch.nn.ModuleDict):
     def __init__(self, cfg, heads):
         super(CombinedROIHeads, self).__init__(heads)
         self.cfg = cfg.clone()
-        if cfg.MODEL.MASK_ON and cfg.MODEL.ROI_MASK_HEAD.SHARE_BOX_FEATURE_EXTRACTOR:
+        if cfg.MODEL.MASK_ON and cfg.MODEL.ROI_MASK_HEAD.SHARE_BOX_FEATURE_EXTRACTOR: ## not on
             self.mask.feature_extractor = self.box.feature_extractor
-        if cfg.MODEL.KEYPOINT_ON and cfg.MODEL.ROI_KEYPOINT_HEAD.SHARE_BOX_FEATURE_EXTRACTOR:
+        if cfg.MODEL.KEYPOINT_ON and cfg.MODEL.ROI_KEYPOINT_HEAD.SHARE_BOX_FEATURE_EXTRACTOR: ## not on 
             self.keypoint.feature_extractor = self.box.feature_extractor
 
     def forward(self, features, proposals, targets=None):
         losses = {}
         # TODO rename x to roi_box_features, if it doesn't increase memory consumption
-        x, detections, loss_box = self.box(features, proposals, targets)
+        x, detections, loss_box = self.box(features, proposals, targets) ## yes
         losses.update(loss_box)
-        if self.cfg.MODEL.MASK_ON:
+        if self.cfg.MODEL.MASK_ON: ## not on
             mask_features = features
             # optimization: during training, if we share the feature extractor between
             # the box and the mask heads, then we can reuse the features already computed
@@ -39,7 +39,7 @@ class CombinedROIHeads(torch.nn.ModuleDict):
             x, detections, loss_mask = self.mask(mask_features, detections, targets)
             losses.update(loss_mask)
 
-        if self.cfg.MODEL.KEYPOINT_ON:
+        if self.cfg.MODEL.KEYPOINT_ON: ## not on
             keypoint_features = features
             # optimization: during training, if we share the feature extractor between
             # the box and the mask heads, then we can reuse the features already computed
@@ -59,16 +59,16 @@ def build_roi_heads(cfg, in_channels):
     # individually create the heads, that will be combined together
     # afterwards
     roi_heads = []
-    if cfg.MODEL.RETINANET_ON:
+    if cfg.MODEL.RETINANET_ON: ## not on
         return []
 
-    if not cfg.MODEL.RPN_ONLY:
+    if not cfg.MODEL.RPN_ONLY: ## yes
         print("BOX only")
-        roi_heads.append(("box", build_roi_box_head(cfg, in_channels)))
-    if cfg.MODEL.MASK_ON:
+        roi_heads.append(("box", build_roi_box_head(cfg, in_channels))) ## activate 
+    if cfg.MODEL.MASK_ON: ## no
         print("MAX and box")
         roi_heads.append(("mask", build_roi_mask_head(cfg, in_channels)))
-    if cfg.MODEL.KEYPOINT_ON:
+    if cfg.MODEL.KEYPOINT_ON: ## no 
         roi_heads.append(("keypoint", build_roi_keypoint_head(cfg, in_channels)))
 
     # combine individual heads in a single module

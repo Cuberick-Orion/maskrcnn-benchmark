@@ -7,7 +7,7 @@ from .roi_box_predictors import make_roi_box_predictor
 from .inference import make_roi_box_post_processor
 from .loss import make_roi_box_loss_evaluator
 
-
+import pdb
 class ROIBoxHead(torch.nn.Module):
     """
     Generic Box Head class.
@@ -23,9 +23,9 @@ class ROIBoxHead(torch.nn.Module):
     def forward(self, features, proposals, targets=None):
         """
         Arguments:
-            features (list[Tensor]): feature-maps from possibly several levels
-            proposals (list[BoxList]): proposal boxes
-            targets (list[BoxList], optional): the ground-truth targets.
+            features (list[Tensor]): feature-maps from possibly several levels - from backbone
+            proposals (list[BoxList]): proposal boxes - from RPN
+            targets (list[BoxList], optional): the ground-truth targets. - None for inference
 
         Returns:
             x (Tensor): the result of the feature extractor
@@ -43,13 +43,31 @@ class ROIBoxHead(torch.nn.Module):
 
         # extract features that will be fed to the final classifier. The
         # feature_extractor generally corresponds to the pooler + heads
-        x = self.feature_extractor(features, proposals)
+        '''(Pdb) proposals
+        [BoxList(num_boxes=1000, image_width=800, image_height=801, mode=xyxy)]
+        '''
+        x = self.feature_extractor(features, proposals) 
+        '''torch.Size([1000, 1024])'''
+
         # final classifier that converts the features into predictions
         class_logits, box_regression = self.predictor(x)
-        if not self.training:
-            result = self.post_processor((class_logits, box_regression), proposals)
-            return x, result, {}
+        '''
+        (Pdb) box_regression.shape
+        torch.Size([1000, 324])
+        (Pdb) class_logits.shape
+        torch.Size([1000, 81])
+        '''
 
+        if not self.training:
+
+            result = self.post_processor((class_logits, box_regression), proposals)
+            '''
+            [BoxList(num_boxes=11, image_width=800, image_height=801, mode=xyxy)]
+            '''
+
+            return x, result, {}
+        
+        ## >>>>> Irrelevant during inference >>>>>
         loss_classifier, loss_box_reg = self.loss_evaluator(
             [class_logits], [box_regression]
         )
@@ -58,7 +76,7 @@ class ROIBoxHead(torch.nn.Module):
             proposals,
             dict(loss_classifier=loss_classifier, loss_box_reg=loss_box_reg),
         )
-
+        ## <<<<<< Irrelevant during inference <<<<<
 
 def build_roi_box_head(cfg, in_channels):
     """

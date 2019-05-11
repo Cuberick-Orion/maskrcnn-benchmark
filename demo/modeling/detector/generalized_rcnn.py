@@ -30,9 +30,10 @@ class GeneralizedRCNN(nn.Module):
 
         self.backbone = build_backbone(cfg)
         self.rpn = build_rpn(cfg, self.backbone.out_channels)
-        self.feature_extractor = make_roi_box_feature_extractor(cfg, self.backbone.out_channels)
         self.roi_heads = build_roi_heads(cfg, self.backbone.out_channels)
 
+        self.feature_extractor = make_roi_box_feature_extractor(cfg, self.backbone.out_channels)
+        
     def forward(self, images, targets=None):
         """
         Arguments:
@@ -48,18 +49,24 @@ class GeneralizedRCNN(nn.Module):
         """
         if self.training and targets is None:
             raise ValueError("In training mode, targets should be passed")
+
         images = to_image_list(images)
         features = self.backbone(images.tensors)
         # pdb.set_trace()
         proposals, proposal_losses = self.rpn(images, features, targets)
         if self.roi_heads:
             x, result, detector_losses = self.roi_heads(features, proposals, targets)
+
+            # print(x.shape)
+            # print(e)
+            ## >>>>>>>>
             if len(result[0]) == 0:
                 output = []
             else:
                 output = self.feature_extractor(features, result) ### this is the feature !!!
                 # pdb.set_trace()
-            # print(result, output.shape)
+            ## <<<<<<<<
+
         else:
             # RPN-only models don't have roi_heads
             x = features

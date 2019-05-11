@@ -50,25 +50,28 @@ def parse_args():
                         default="../data/images/COCO_train2014/", type=str)
     parser.add_argument('--feat_dir', dest='feat_dir',
                         help='feature file directory (output)',
-                        default="../data/features/COCO_train2014/", type=str)
+                        default="../data/features/COCO_train2014_v2/", type=str)
     parser.add_argument('--info_out_dir', dest='info_out_dir',
                         help='additional pickle output directory (output)',
-                        default="../data/features/COCO_train2014/train2014_info.pkl", type=str)
+                        default="../data/features/COCO_train2014_v2/train2014_info.pkl", type=str)
     parser.add_argument('--imgids_dir', dest='imgids_dir',
                         help='image ids directory (output)',
-                        default="../data/features/COCO_train2014/train2014_ids.pkl", type=str)
+                        default="../data/features/COCO_train2014_v2/train2014_ids.pkl", type=str)
     parser.add_argument('--imgindices_dir', dest='imgindices_dir',
                         help='image ids directory (output)',
-                        default="../data/features/COCO_train2014/train2014_imgid2idx.pkl", type=str)
+                        default="../data/features/COCO_train2014_v2/train2014_imgid2idx.pkl", type=str)
     parser.add_argument('--zero_feat_imgids_dir', dest='zero_feat_imgids_dir',
                         help='image ids with zero features extracted directory (output)',
-                        default="../data/features/COCO_train2014/train2014_imgidempty.pkl", type=str)
+                        default="../data/features/COCO_train2014_v2/train2014_imgidempty.pkl", type=str)
 
 
     
     parser.add_argument('--model', dest='model',
                         help='model to use (config file)',
-                        default="../configs/caffe2/e2e_mask_rcnn_X_101_32x8d_FPN_1x_caffe2.yaml", type=str)
+                        default="../configs/caffe2/e2e_faster_rcnn_R_101_FPN_1x_caffe2.yaml", type=str)
+    # parser.add_argument('--model', dest='model',
+    #                     help='model to use (config file)',
+    #                     default="../configs/caffe2/e2e_mask_rcnn_X_101_32x8d_FPN_1x_caffe2.yaml", type=str)
 
     parser.add_argument('--K_max', dest='K_max',
                         help='K max',

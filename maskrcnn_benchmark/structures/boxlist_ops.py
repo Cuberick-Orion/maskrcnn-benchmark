@@ -5,7 +5,7 @@ from .bounding_box import BoxList
 
 from maskrcnn_benchmark.layers import nms as _box_nms
 
-
+import pdb
 def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
     """
     Performs non-maximum suppression on a boxlist, with scores specified
@@ -24,11 +24,43 @@ def boxlist_nms(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
     boxlist = boxlist.convert("xyxy")
     boxes = boxlist.bbox
     score = boxlist.get_field(score_field)
+
     keep = _box_nms(boxes, score, nms_thresh)
     if max_proposals > 0:
         keep = keep[: max_proposals]
     boxlist = boxlist[keep]
     return boxlist.convert(mode)
+
+    
+def boxlist_nms_inference(boxlist, nms_thresh, max_proposals=-1, score_field="scores"):
+    """
+    COPIED FOR PDB PURPOSE, OTHERWISE IT WILL BE HELD UP BY RPN EVEY TIME
+    Performs non-maximum suppression on a boxlist, with scores specified
+    in a boxlist field via score_field.
+
+    Arguments:
+        boxlist(BoxList)
+        nms_thresh (float)
+        max_proposals (int): if > 0, then only the top max_proposals are kept
+            after non-maximum suppression
+        score_field (str)
+    """
+    if nms_thresh <= 0:
+        return boxlist
+    mode = boxlist.mode
+    boxlist = boxlist.convert("xyxy")
+    boxes = boxlist.bbox
+    score = boxlist.get_field(score_field)
+
+    keep = _box_nms(boxes, score, nms_thresh) ## a _C module
+    '''Not only does nms removes scores<nms_thresh
+    It also do reginonal removal based on spatial information
+    '''
+    if max_proposals > 0:
+        keep = keep[: max_proposals]
+    boxlist = boxlist[keep]
+    return boxlist.convert(mode)
+
 
 
 def remove_small_boxes(boxlist, min_size):

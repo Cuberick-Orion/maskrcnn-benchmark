@@ -10,6 +10,20 @@ Output: each image corresponds a pkl file containing {"K" : K_current, "features
     The pkl file name is the image_id as the original MSCOCO dataset.
 '''
 
+## NOTE unfinished!!!!!!
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
+##############################
 import os, sys
 import cv2
 import json
@@ -37,7 +51,9 @@ from predictor0 import COCODemo
 
 import argparse
 
-# CUDA_VISIBLE_DEVICES=2 python extract_object_features_VQA2.py --img_dir "../data/images/COCO_val2014/" --feat_dir "../data/features/COCO_val2014_withboxlist/"
+from multiprocessing import Process
+
+# CUDA_VISIBLE_DEVICES=2 python extract_object_features_VQA2.py --img_dir "../data/images/COCO_val2014/" --feat_dir "../data/features/COCO_val2014/" --info_out_dir "../data/features/COCO_val2014/val2014_info.pkl" --imgids_dir "../data/features/COCO_val2014/val2014_ids.pkl" --imgindices_dir "../data/features/COCO_val2014/val2014_imgid2idx.pkl"
 
 def parse_args():
     """
@@ -68,32 +84,20 @@ def parse_args():
                         help='confidence threshold',
                         default=0.2, type=float)
 
+    parser.add_argument('--gpu', dest='gpu_id',
+                        help='visible gpu(s)',
+                        default='0,1,2,3,4,5,6,7', type=str)
+
     args = parser.parse_args()
     return args
 
-if __name__ == '__main__':
-    args = parse_args()
 
-    print('Called with args:')
-    print(args)
-
-    ## define path
-    ## Paths to frames, annotation("selected images") and features dst folder.
-    pathTo = {}
-    pathTo['frames']   = args.img_dir
-    pathTo['features'] = args.feat_dir
-
-    if not os.path.exists(args.feat_dir):
-        os.makedirs(args.feat_dir)
-        print('[INFO] Create feature output directory (non exists)')
+def generate_pkl(gpu_id, args, image_ids):
     config_file = args.model
-
     cfg.merge_from_file(config_file)
     cfg.merge_from_list(["MODEL.DEVICE", "cuda"])
     min_image_size=800,
     confidence_threshold=0.2,
-
-
     ## build model
     coco_demo = COCODemo(
         cfg,
@@ -101,20 +105,13 @@ if __name__ == '__main__':
         confidence_threshold=args.thres,
     )
 
-    ## load images
-    imglist = os.listdir(pathTo['frames'])
-    num_images = len(imglist)
+    torch.cuda.set_device(gpu_id)
 
-    print('Loaded Photo: {} images.'.format(num_images))
-
-    counter = 0
-
-    print("[INFO] Starting processing images")
-    while (num_images > 0):
-        num_images -= 1
-
-        img_file = os.path.join(pathTo['frames'], imglist[num_images])
-        img_id = int(imglist[num_images][15:-4])
+    count = 0
+    
+    for img_filename in image_ids:
+        img_file = os.path.join(pathTo['frames'], img_filename)
+        img_id = int(img_filename[15:-4])
 
         dst_path = "{}/{}.pkl".format(pathTo['features'], str(img_id).replace(".jpg",""))
         ## check if file exists
@@ -138,14 +135,57 @@ if __name__ == '__main__':
                 print("[WARNING] image has ZERO features extracted, IMGID: %i" % img_id)
                 features_padded = np.zeros((args.K_max, args.feature_dim)) ## 100x1024
 
-            # pdb.set_trace()
             features_zip = sparse.csr_matrix(features_padded)
             pickle.dump({"K" : K_current, 'predictions': predictions, "features": features_zip}, \
-                        open(dst_path,'wb'), protocol=3) ## NOTE protocol 2 for backwards compatibility
-            counter += 1
+                        open(dst_path,'wb'))
+            count += 1
 
-            sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s | K={:d}   \r' \
-                    .format(num_images + 1, len(imglist), detect_time, K_current))
-            sys.stdout.flush()
+            print('im_detect: {:d}/{:d} {:.3f}s | K={:d}   \r' \
+                    .format(count, len(image_ids), detect_time, K_current))
+
+    return
+
+if __name__ == '__main__':
+    args = parse_args()
+
+    print('Called with args:')
+    print(args)
+
+    gpu_id = args.gpu_id
+    gpu_list = gpu_id.split(',')
+    gpus = [int(i) for i in gpu_list]
+
+    ## define path
+    ## Paths to frames, annotation("selected images") and features dst folder.
+    pathTo = {}
+    pathTo['frames']   = args.img_dir
+    pathTo['features'] = args.feat_dir
+
+    if not os.path.exists(args.feat_dir):
+        os.makedirs(args.feat_dir)
+        print('[INFO] Create feature output directory (non exists)')
+
+    ## load images
+    imglist = os.listdir(pathTo['frames'])
+    num_images = len(imglist)
+
+    imglist = [imglist[i::len(gpus)] for i in range(len(gpus))]
+
+    pdb.set_trace()
+    print('Loaded Photo: {} images.'.format(num_images))
+    
+    print("[INFO] Starting multi-processing images")
+
+    procs = []  
+    for i,gpu_id in enumerate(gpus):
+        p = Process(target=generate_pkl,
+                    args=(gpu_id, args, imglist[i]))
+        p.daemon = True
+        p.start()
+        procs.append(p)
+    for p in procs:
+        p.join()       
+
+    
 
     print("[DONE]!")

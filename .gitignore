@@ -13,7 +13,7 @@ dist/
 *.npy
 
 # ipython/jupyter notebooks
-*.ipynb
+# who the fucking idiots decided to write the notebook files here!!!
 **/.ipynb_checkpoints/
 
 # Editor temporaries

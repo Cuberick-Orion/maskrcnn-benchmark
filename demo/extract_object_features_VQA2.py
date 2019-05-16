@@ -50,7 +50,7 @@ def parse_args():
                         default="../data/images/COCO_train2014/", type=str)
     parser.add_argument('--feat_dir', dest='feat_dir',
                         help='feature file directory (output)',
-                        default="../data/features/COCO_train2014_withboxlist/", type=str)    
+                        default="../data/features/COCO_train2014_v2/", type=str)    
     parser.add_argument('--model', dest='model',
                         help='model to use (config file)',
                         default="../configs/caffe2/e2e_faster_rcnn_R_101_FPN_1x_caffe2.yaml", type=str)
@@ -147,5 +147,7 @@ if __name__ == '__main__':
             sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s | K={:d}   \r' \
                     .format(num_images + 1, len(imglist), detect_time, K_current))
             sys.stdout.flush()
+
+            pdb.set_trace()
 
     print("[DONE]!")
